@@ -4,7 +4,7 @@ angular.module('bmc').directive('area', function () {
     restrict: 'C',
     scope: true,
     template: '<div class="area__head">\n\t<input class="area__title" type="text" value="{{title}}"></input>\n\t<button class="area__add-element" title="Add new element"></button>\n</div>\n<div class="area__dropzone"></div>',
-    link: function (scope, elm, attrs) {
+    link: function (scope, element, attrs) {
       var addElement, dragLeave, dragOver, drop;
       scope.title = attrs.caption;
       drop = function (event) {
@@ -18,19 +18,20 @@ angular.module('bmc').directive('area', function () {
           event.preventDefault();
         }
         event.dataTransfer.dropEffect = 'move';
-        return elm.addClass('area--dragover');
+        return element.addClass('area--dragover');
       };
       dragLeave = function () {
-        return elm.removeClass('area--dragover');
+        return element.removeClass('area--dragover');
       };
       addElement = function () {
         return scope.$broadcast('area::appendNewElement');
       };
-      scope.$on('area::elementDropped', dragLeave);
-      scope.$on('area::addNewElement', addElement);
-      elm.bind('drop', drop);
-      elm.bind('dragover', dragOver);
-      elm.bind('dragleave', dragLeave);
+      scope.$on('areaDropzone::elementDropped', dragLeave);
+      scope.$on('postIt::elementDropped', dragLeave);
+      scope.$on('areaAddElement::addNewElement', addElement);
+      element.bind('drop', drop);
+      element.bind('dragover', dragOver);
+      element.bind('dragleave', dragLeave);
     }
   };
 });
@@ -38,12 +39,12 @@ angular.module('bmc').directive('areaAddElement', function () {
   return {
     restrict: 'C',
     template: '+',
-    link: function (scope, elm) {
+    link: function (scope, element) {
       var addElement;
       addElement = function () {
-        return scope.$emit('area::addNewElement');
+        return scope.$emit('areaAddElement::addNewElement');
       };
-      elm.bind('click', addElement);
+      element.bind('click', addElement);
     }
   };
 });
@@ -54,16 +55,16 @@ angular.module('bmc').directive('areaDropzone', [
     return {
       restrict: 'C',
       scope: true,
-      link: function (scope, elm, attrs) {
+      link: function (scope, element, attrs) {
         var addElement, dropElement;
         dropElement = function () {
-          elm.append(draggedElementServ.draggedElement);
-          return scope.$emit('area::elementDropped');
+          element.append(draggedElementServ.draggedElement);
+          return scope.$emit('areaDropzone::elementDropped');
         };
         addElement = function () {
           var newElement;
           newElement = $compile(draggedElementServ.getNewDragElement())(scope);
-          return elm.append(newElement);
+          return element.append(newElement);
         };
         scope.$on('area::appendDraggedElement', dropElement);
         scope.$on('area::appendNewElement', addElement);
@@ -78,28 +79,28 @@ angular.module('bmc').directive('postIt', [
       restrict: 'C',
       scope: true,
       template: '<button class="post-it__delete" title="Delete"></button>\n<textarea ng-model="data.text"></textarea>',
-      link: function (scope, elm, attrs) {
+      link: function (scope, element, attrs) {
         var dragEnd, dragStart, drop;
-        elm.attr('draggable', 'true');
+        element.attr('draggable', 'true');
         scope.data = {};
         dragStart = function (event) {
-          draggedElementServ.draggedElement = elm;
-          elm.addClass('post-it--dragged');
+          draggedElementServ.draggedElement = element;
+          element.addClass('post-it--dragged');
           return event.dataTransfer.setData('Text', '');
         };
         dragEnd = function () {
-          return elm.removeClass('post-it--dragged');
+          return element.removeClass('post-it--dragged');
         };
         drop = function (event) {
           if (event.stopPropagation) {
             event.stopPropagation();
           }
-          scope.$emit('area::elementDropped');
-          return elm.after(draggedElementServ.draggedElement);
+          scope.$emit('postIt::elementDropped');
+          return element.after(draggedElementServ.draggedElement);
         };
-        elm.bind('dragstart', dragStart);
-        elm.bind('dragend', dragEnd);
-        elm.bind('drop', drop);
+        element.bind('dragstart', dragStart);
+        element.bind('dragend', dragEnd);
+        element.bind('drop', drop);
       },
       controller: [
         '$scope',
@@ -109,7 +110,7 @@ angular.module('bmc').directive('postIt', [
           deleteMe = function () {
             return $element.remove();
           };
-          $scope.$on('postIt::delete', deleteMe);
+          $scope.$on('postItDelete::delete', deleteMe);
         }
       ]
     };
@@ -119,12 +120,12 @@ angular.module('bmc').directive('postItDelete', function () {
   return {
     restrict: 'C',
     template: '&times;',
-    link: function (scope, elm, attrs) {
+    link: function (scope, element, attrs) {
       var deletePostIt;
       deletePostIt = function () {
-        return scope.$emit('postIt::delete');
+        return scope.$emit('postItDelete::delete');
       };
-      elm.bind('click', deletePostIt);
+      element.bind('click', deletePostIt);
     }
   };
 });

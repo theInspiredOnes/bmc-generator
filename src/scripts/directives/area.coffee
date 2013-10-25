@@ -1,15 +1,19 @@
 angular.module('bmc').directive 'area', ->
+	
 	restrict: 'C'
+
 	scope: true
+
 	template:
 		'''
-			<div class="area__head">
-				<input class="area__title" type="text" value="{{title}}"></input>
-				<button class="area__add-element" title="Add new element"></button>
-			</div>
-			<div class="area__dropzone"></div>
+		<div class="area__head">
+			<input class="area__title" type="text" value="{{title}}"></input>
+			<button class="area__add-element" title="Add new element"></button>
+		</div>
+		<div class="area__dropzone"></div>
 		'''
-	link: (scope, elm, attrs) ->
+
+	link: (scope, element, attrs) ->
 		scope.title = attrs.caption
 
 		drop = (event) ->
@@ -20,15 +24,17 @@ angular.module('bmc').directive 'area', ->
 			if event.preventDefault then event.preventDefault()
 			event.dataTransfer.dropEffect = 'move'
 			# not with dragenter event because its unreliable
-			elm.addClass 'area--dragover'
+			element.addClass 'area--dragover'
 
-		dragLeave = -> elm.removeClass 'area--dragover'
+		dragLeave = -> element.removeClass 'area--dragover'
+
 		addElement = -> scope.$broadcast 'area::appendNewElement'
 		
-		scope.$on 'area::elementDropped', dragLeave
-		scope.$on 'area::addNewElement', addElement
+		scope.$on 'areaDropzone::elementDropped', dragLeave
+		scope.$on 'postIt::elementDropped', dragLeave
+		scope.$on 'areaAddElement::addNewElement', addElement
 
-		elm.bind 'drop', drop
-		elm.bind 'dragover', dragOver
-		elm.bind 'dragleave', dragLeave
+		element.bind 'drop', drop
+		element.bind 'dragover', dragOver
+		element.bind 'dragleave', dragLeave
 		return
