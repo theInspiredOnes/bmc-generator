@@ -6,14 +6,20 @@ module.exports = (grunt) ->
 	grunt.initConfig
 		buildDir: './build'
 		srcDir: './src'
-		tmpDir: '.tmp'
+		tmpDir: './.tmp'
 		pkg: grunt.file.readJSON 'package.json'
 		src:
-			coffee: [ '<%= srcDir %>/scripts/**/*.coffee' ]
-			less: '<%= srcDir %>/styles/<%= pkg.name %>.less'
+			coffee: '<%= srcDir %>/scripts/**/*.coffee'
+			less: '<%= srcDir %>/styles/*.less'
+			templates: '<%= srcDir %>/templates/**/*.tpl'
 			#jade: 'jade/*.jade'
 		clean:
-			tmp: [ '.tmp' ]
+			tmp: [ 
+				'<%= tmpDir %>'
+			]
+			build: [ 
+				'<%= buildDir %>'
+			]
 
 		recess:
 			build:
@@ -56,6 +62,37 @@ module.exports = (grunt) ->
 				files:
 					'<%= buildDir %>/js/<%= pkg.name %>.min.js': [ '<%= buildDir %>/js/<%= pkg.name %>.annotated.js' ]
 
+		copy:
+			templates:
+				files: [
+					cwd: '<%= srcDir %>/templates/'
+					src: '**/*.tpl'
+					dest: '<%= buildDir %>/templates/'
+					expand: true
+				]
+			main: 
+				files: [
+					cwd: '<%= srcDir %>'
+					src: 'index.html'
+					dest: '<%= buildDir %>'
+					expand: true
+				]
+			css:
+				files: [
+					cwd: '<%= srcDir %>/styles/vendor'
+					src: '*.css'
+					dest: '<%= buildDir %>/css'
+					expand: true
+				]
+			js:
+				files: [
+					cwd: '<%= srcDir %>/scripts/vendor'
+					src: '*.js'
+					dest: '<%= buildDir %>/js'
+					expand: true
+				]
+
+
 		delta:
 			options:
 				livereload: true
@@ -66,10 +103,22 @@ module.exports = (grunt) ->
 			# 		'ngmin'
 			# 		'uglify'
 			# 	]
+			templates:
+				files: [ '<%= src.templates %>' ]
+				tasks: [ 'copy:templates' ]
+			main:
+				files: [ '<%= srcDir %>/index.html' ]
+				tasks: [ 'copy:main' ]
+			css:
+				files: [ '<%= srcDir %>/styles/vendor/*.css' ]
+				tasks: [ 'copy:css' ]
+			js:
+				files: [ '<%= srcDir %>/scripts/vendor/*.js' ]
+				tasks: [ 'copy:js' ]
 			coffee:
 				files: [ '<%= src.coffee %>' ]
 				tasks: [
-					'clean'
+					'clean:tmp'
 					'coffee'
 					'concat'
 					'ngmin'
@@ -91,6 +140,7 @@ module.exports = (grunt) ->
 	grunt.registerTask 'default', [ 'build' ]
 	grunt.registerTask 'build', [
 		'clean'
+		'copy'
 		'recess'
 		'coffee'
 		'concat'
