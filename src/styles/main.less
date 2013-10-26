@@ -1,10 +1,7 @@
 @gray: #AAA;
 
-html, body {
-	height: 100vh;
-}
-
-.h-1-1 {
+html, body, .h-1 {
+	.border-box();
 	height: 100%;
 }
 
@@ -99,9 +96,12 @@ html, body {
 	}
 
 	textarea {
+		.border-box();
 		background-color: fadeout(white, 50%);
 		border: none;
 		max-width: 100%;
+		min-height: 50px;
+		min-width: 100px;
 		border-radius: 0.5em;
 		padding: 0.5em;
 	}
